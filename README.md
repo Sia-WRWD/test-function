@@ -28,3 +28,4 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 ## References
 1. https://www.bezkoder.com/angular-14-firebase-storage/ (Firebase Upload Files)
+2. https://www.bezkoder.com/angular-14-firestore-crud/

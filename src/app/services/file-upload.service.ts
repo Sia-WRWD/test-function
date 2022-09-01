@@ -1,19 +1,27 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase, AngularFireList } from '@angular/fire/compat/database';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { FileUpload } from '../models/file-upload.model';
+import { ProfileImg } from '../models/profile-img.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileUploadService {
 
-  private basePath = '/';
-  constructor(private db: AngularFireDatabase, private storage: AngularFireStorage) { }
+  private rdbPath = '/';
+  private dbPath = '/profile_img';
+  imageRef!: AngularFirestoreCollection<ProfileImg>;
+
+  constructor(private rdb: AngularFireDatabase, private db: AngularFirestore, private storage: AngularFireStorage) { 
+    this.imageRef = db.collection(this.dbPath);
+  }
+  
   pushFileToStorage(fileUpload: FileUpload): Observable<number | undefined> {
-    const filePath = `${this.basePath}/${fileUpload.file.name}`;
+    const filePath = `${this.rdbPath}/${fileUpload.file.name}`;
     const storageRef = this.storage.ref(filePath);
     const uploadTask = this.storage.upload(filePath, fileUpload.file);
     uploadTask.snapshotChanges().pipe(
@@ -29,11 +37,18 @@ export class FileUploadService {
   }
 
   private saveFileData(fileUpload: FileUpload): void {
-    this.db.list(this.basePath).push(fileUpload);
+    this.rdb.list(this.rdbPath).push(fileUpload);
+    
+    var details = {
+      image_url: fileUpload.url,
+      name: fileUpload.name
+    }
+
+    this.imageRef.add({...details});
   }
 
   getFiles(numberItems: number): AngularFireList<FileUpload> {
-    return this.db.list(this.basePath, ref =>
+    return this.rdb.list(this.rdbPath, ref =>
       ref.limitToLast(numberItems));
   }
 
@@ -46,11 +61,11 @@ export class FileUploadService {
   }
   
   private deleteFileDatabase(key: string): Promise<void> {
-    return this.db.list(this.basePath).remove(key);
+    return this.rdb.list(this.rdbPath).remove(key);
   }
   
   private deleteFileStorage(name: string): void {
-    const storageRef = this.storage.ref(this.basePath);
+    const storageRef = this.storage.ref(this.rdbPath);
     storageRef.child(name).delete();
   }
 }

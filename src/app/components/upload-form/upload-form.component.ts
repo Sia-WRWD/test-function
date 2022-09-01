@@ -22,6 +22,7 @@ export class UploadFormComponent implements OnInit {
   selectFile(event: any): void {
     this.selectedFiles = event.target.files;
   }
+  
   upload(): void {
     if (this.selectedFiles) {
       const file: File | null = this.selectedFiles.item(0);
